@@ -19,11 +19,16 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-    const [user, setUser] = useState<User | null>(null);
+    const [user, setUser] = useState<User | null>({
+        fullName: "Gui Presta",
+        email: "guiprestaUMC@email.com",
+        role: "Admin",
+    });
 
     const login = (userData: User) => {
         setUser(userData);
         addLog(`User logged in: ${userData.email}`);
+        toast.success("Welcome back!");
     };
 
     const logout = () => {
