@@ -8,12 +8,18 @@ interface User {
     role: "User" | "Admin";
 }
 
+interface UpdateProfileData {
+    fullName: string
+    email?: string
+}
+
 interface AuthContextType {
     user: User | null;
     isAuthenticated: boolean;
     login: (userData: User) => void;
     logout: () => void;
     deleteAccount: () => void;
+    updateProfile: (data: UpdateProfileData) => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -38,6 +44,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
     };
 
+    const updateProfile = (data: UpdateProfileData) => {
+        console.log("Updating profile", data)
+        if (user) {
+            setUser({
+                ...user,
+                ...data,
+            })
+        }
+    }
+
     const deleteAccount = () => {
         if (user) {
             addLog(`User deleted account: ${user.email}`);
@@ -47,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     return (
-        <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, logout, deleteAccount }}>
+        <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, logout, updateProfile, deleteAccount, }}>
             {children}
         </AuthContext.Provider>
     );
