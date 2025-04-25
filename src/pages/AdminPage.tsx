@@ -2,14 +2,14 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { LogOut, Users, ClipboardList } from "lucide-react"
-import {UsersComponent} from "@/components/UsersComponent.tsx";
-import {LogsComponent} from "@/components/LogsComponent.tsx";
-import {Toaster} from "sonner";
-
+import { LogOut, Users, ClipboardList, ShieldPlus } from "lucide-react"
+import { UsersComponent } from "@/components/UsersComponent.tsx"
+import { LogsComponent } from "@/components/LogsComponent.tsx"
+import { CreateAdminComponent } from "@/components/CreateAdminComponent.tsx"
+import { Toaster } from "sonner"
 
 export function AdminPage() {
-    const [activeTab, setActiveTab] = useState<"users" | "logs">("users")
+    const [activeTab, setActiveTab] = useState<"users" | "logs" | "create-admin">("users")
 
     return (
         <div className="flex min-h-screen bg-background">
@@ -34,6 +34,16 @@ export function AdminPage() {
                         >
                             <ClipboardList size={18} />
                             Logs
+                        </Button>
+                    </div>
+                    <div className="px-4 py-2">
+                        <Button
+                            variant={activeTab === "create-admin" ? "default" : "ghost"}
+                            className="w-full justify-start gap-2 font-medium cursor-pointer"
+                            onClick={() => setActiveTab("create-admin")}
+                        >
+                            <ShieldPlus size={18} />
+                            Register Admin
                         </Button>
                     </div>
                 </div>
@@ -66,13 +76,24 @@ export function AdminPage() {
                         >
                             <ClipboardList size={20} />
                         </Button>
+                        <Button
+                            variant={activeTab === "create-admin" ? "default" : "ghost"}
+                            size="icon"
+                            onClick={() => setActiveTab("create-admin")}
+                        >
+                            <ShieldPlus size={20} />
+                        </Button>
                         <Button variant="ghost" size="icon" className="text-red-500">
                             <LogOut size={20} />
                         </Button>
                     </div>
                 </div>
 
-                <div className="flex-1 p-6 overflow-auto">{activeTab === "users" ? <UsersComponent /> : <LogsComponent />}</div>
+                <div className="flex-1 p-6 overflow-auto">
+                    {activeTab === "users" && <UsersComponent />}
+                    {activeTab === "logs" && <LogsComponent />}
+                    {activeTab === "create-admin" && <CreateAdminComponent />}
+                </div>
             </div>
             <Toaster />
         </div>

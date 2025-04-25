@@ -273,12 +273,12 @@ export function UsersComponent({ users = [] }: UsersComponentProps) {
                             <div className="grid grid-cols-4 items-center gap-4">
                                 <Label htmlFor="role" className="text-right">Role</Label>
                                 <Select value={newRole} onValueChange={(value) => setNewRole(value as "User" | "Admin")}>
-                                    <SelectTrigger className="col-span-3">
+                                    <SelectTrigger className="col-span-3 cursor-pointer">
                                         <SelectValue placeholder="Select a role" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="User">User</SelectItem>
-                                        <SelectItem value="Admin">Admin</SelectItem>
+                                        <SelectItem className="cursor-pointer"  value="User">User</SelectItem>
+                                        <SelectItem className="cursor-pointer"  value="Admin">Admin</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -286,8 +286,8 @@ export function UsersComponent({ users = [] }: UsersComponentProps) {
                     </div>
 
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsModalOpen(false)}>Cancel</Button>
-                        <Button onClick={handleUpdateUser}>Save changes</Button>
+                        <Button className="cursor-pointer"  variant="outline" onClick={() => setIsModalOpen(false)}>Cancel</Button>
+                        <Button className="cursor-pointer" onClick={handleUpdateUser}>Save changes</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
