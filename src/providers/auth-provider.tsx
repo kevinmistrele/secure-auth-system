@@ -1,38 +1,56 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { addLog } from "@/services/log-service";
-import {toast} from "sonner";
+import { toast } from "sonner";
 
-interface User {
+export interface User {
     fullName: string;
     email: string;
-    role: "User" | "Admin";
+    role: "user" | "admin";
+    token?: string;
 }
 
-interface UpdateProfileData {
-    fullName: string
-    email?: string
+export interface UpdateProfileData {
+    fullName: string;
+    email?: string;
 }
 
 interface AuthContextType {
     user: User | null;
     isAuthenticated: boolean;
-    login: (userData: User) => void;
+    login: (userData: User, token: string) => void;
     logout: () => void;
     deleteAccount: () => void;
-    updateProfile: (data: UpdateProfileData) => void
+    updateProfile: (data: UpdateProfileData) => void;
+    isLoading: boolean; // Novo estado para o carregamento
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-    const [user, setUser] = useState<User | null>({
-        fullName: "Gui Presta",
-        email: "guiprestaUMC@email.com",
-        role: "Admin",
-    });
+    const [user, setUser] = useState<User | null>(null);
+    const [isLoading, setIsLoading] = useState(true); // Estado de carregamento
 
-    const login = (userData: User) => {
-        setUser(userData);
+    useEffect(() => {
+        // Verificar se o token existe no localStorage e restaurar o usuário
+        const storedToken = localStorage.getItem("token");
+        const storedRole = localStorage.getItem("role");
+        if (storedToken && storedRole) {
+            // Restaurar o usuário com base no token e role armazenados
+            const storedUser = {
+                fullName: "Mocked User", // Ou recupere esses dados via API se necessário
+                email: "user@example.com", // Idem
+                role: storedRole as "admin" | "user",
+                token: storedToken,
+            };
+            setUser(storedUser);
+        }
+        setIsLoading(false); // Finalizar carregamento
+    }, []);
+
+    const login = (userData: User, token: string) => {
+        setUser({ ...userData, token });
+        localStorage.setItem("token", token);
+        localStorage.setItem("role", userData.role);
         addLog(`User logged in: ${userData.email}`);
         toast.success("Welcome back!");
     };
@@ -42,17 +60,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             addLog(`User logged out: ${user.email}`);
         }
         setUser(null);
+        localStorage.removeItem("token");
+        localStorage.removeItem("role");
     };
 
     const updateProfile = (data: UpdateProfileData) => {
-        console.log("Updating profile", data)
+        console.log("Updating profile", data);
         if (user) {
             setUser({
                 ...user,
                 ...data,
-            })
+            });
         }
-    }
+    };
 
     const deleteAccount = () => {
         if (user) {
@@ -63,7 +83,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     return (
-        <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, logout, updateProfile, deleteAccount, }}>
+        <AuthContext.Provider
+            value={{ user, isAuthenticated: !!user, login, logout, updateProfile, deleteAccount, isLoading }}
+        >
             {children}
         </AuthContext.Provider>
     );

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -16,15 +16,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label"
 import { AlertCircle } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import {useAuth} from "@/providers/auth-provider.tsx";
-import {toast} from "sonner";
-
+import { useAuth } from "@/providers/auth-provider.tsx"
+import { toast } from "sonner"
+import useApiService from "@/services/apiService.ts";
 
 export interface User {
     id: string
     name: string
     email: string
-    role: "User" | "Admin"
+    role: "user" | "admin"
 }
 
 interface UsersComponentProps {
@@ -32,40 +32,8 @@ interface UsersComponentProps {
 }
 
 export function UsersComponent({ users = [] }: UsersComponentProps) {
-    const [sampleUsers, setSampleUsers] = useState<User[]>(
-        users.length
-            ? users
-            : [
-                { id: "1", name: "John Doe", email: "john.doe@example.com", role: "User" },
-                { id: "2", name: "Jane Smith", email: "jane.smith@example.com", role: "Admin" },
-                { id: "3", name: "Robert Johnson", email: "robert.j@example.com", role: "User" },
-                { id: "4", name: "Emily Davis", email: "emily.davis@example.com", role: "User" },
-                { id: "5", name: "Michael Brown", email: "michael.b@example.com", role: "User" },
-                { id: "6", name: "Sarah Wilson", email: "sarah.w@example.com", role: "Admin" },
-                { id: "7", name: "David Taylor", email: "david.t@example.com", role: "User" },
-                { id: "8", name: "Lisa Anderson", email: "lisa.a@example.com", role: "User" },
-                { id: "9", name: "John Doe", email: "john.doe@example.com", role: "User" },
-                { id: "10", name: "Jane Smith", email: "jane.smith@example.com", role: "Admin" },
-                { id: "11", name: "Robert Johnson", email: "robert.j@example.com", role: "User" },
-                { id: "12", name: "Emily Davis", email: "emily.davis@example.com", role: "User" },
-                { id: "13", name: "Michael Brown", email: "michael.b@example.com", role: "User" },
-                { id: "14", name: "Sarah Wilson", email: "sarah.w@example.com", role: "Admin" },
-                { id: "15", name: "David Taylor", email: "david.t@example.com", role: "User" },
-                { id: "16", name: "Lisa Anderson", email: "lisa.a@example.com", role: "User" },
-                { id: "17", name: "Sarah Wilson", email: "sarah.w@example.com", role: "Admin" },
-                { id: "18", name: "David Taylor", email: "david.t@example.com", role: "User" },
-                { id: "19", name: "Lisa Anderson", email: "lisa.a@example.com", role: "User" },
-                { id: "20", name: "John Doe", email: "john.doe@example.com", role: "User" },
-                { id: "21", name: "Jane Smith", email: "jane.smith@example.com", role: "Admin" },
-                { id: "22", name: "Robert Johnson", email: "robert.j@example.com", role: "User" },
-                { id: "23", name: "Emily Davis", email: "emily.davis@example.com", role: "User" },
-                { id: "24", name: "Michael Brown", email: "michael.b@example.com", role: "User" },
-                { id: "25", name: "Sarah Wilson", email: "sarah.w@example.com", role: "Admin" },
-                { id: "26", name: "David Taylor", email: "david.t@example.com", role: "User" },
-                { id: "27", name: "Lisa Anderson", email: "lisa.a@example.com", role: "User" },
-            ],
-    )
-
+    const { getUsers } = useApiService() // Usando o hook de serviço para chamadas API
+    const [sampleUsers, setSampleUsers] = useState<User[]>(users)
     const [currentPage, setCurrentPage] = useState(1)
     const itemsPerPage = 12
     const totalPages = Math.ceil(sampleUsers.length / itemsPerPage)
@@ -74,15 +42,26 @@ export function UsersComponent({ users = [] }: UsersComponentProps) {
     // Modal state
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [selectedUser, setSelectedUser] = useState<User | null>(null)
-    const [newRole, setNewRole] = useState<"User" | "Admin">("User")
+    const [newRole, setNewRole] = useState<"user" | "admin">("user")
     const [showAdminError, setShowAdminError] = useState(false)
-    const [newName, setNewName] = useState("");
+    const [newName, setNewName] = useState("")
     const { user: loggedUser, updateProfile } = useAuth()
 
-
+    // Carregar usuários ao montar o componente
+    useEffect(() => {
+        const loadUsers = async () => {
+            try {
+                const usersData = await getUsers()
+                setSampleUsers(usersData)
+            } catch (error) {
+                console.error("Error loading users:", error)
+            }
+        }
+        loadUsers()
+    }, [])
 
     const handleOpenChangeRoleModal = (user: User) => {
-        if (user.role === "Admin") {
+        if (user.role === "admin") {
             setShowAdminError(true)
             setTimeout(() => setShowAdminError(false), 3000)
             return
@@ -100,25 +79,30 @@ export function UsersComponent({ users = [] }: UsersComponentProps) {
         setIsModalOpen(true)
     }
 
-    const handleUpdateUser = () => {
-        if (!selectedUser) return;
+    const handleUpdateUser = async () => {
+        if (!selectedUser) return
 
-        const updatedUsers = sampleUsers.map((user) =>
-            user.id === selectedUser.id
-                ? { ...user, name: newName, role: selectedUser.role === "Admin" ? "Admin" : newRole }
-                : user
-        );
+        try {
+            const updatedUsers = sampleUsers.map((user) =>
+                user.id === selectedUser.id
+                    ? { ...user, name: newName, role: selectedUser.role === "admin" ? "admin" : newRole }
+                    : user
+            )
 
-        setSampleUsers(updatedUsers);
+            setSampleUsers(updatedUsers)
 
-        if (selectedUser.email === loggedUser?.email) {
-            updateProfile({ fullName: newName });
+            if (selectedUser.email === loggedUser?.email) {
+                updateProfile({ fullName: newName })
+            }
+
+            toast.success(`User has been updated successfully!`)
+            setIsModalOpen(false)
+            setSelectedUser(null)
+        } catch (error) {
+            toast.error("Error updating user!")
+            console.error(error)
         }
-
-        toast.success(`User has been updated successfully!`);
-        setIsModalOpen(false);
-        setSelectedUser(null);
-    };
+    }
 
     return (
         <>
@@ -174,6 +158,7 @@ export function UsersComponent({ users = [] }: UsersComponentProps) {
                 </Table>
             </div>
 
+            {/* A versão mobile */}
             <div className="md:hidden space-y-4">
                 {currentUsers.map((user) => (
                     <Card key={user.id}>
@@ -272,7 +257,7 @@ export function UsersComponent({ users = [] }: UsersComponentProps) {
                         {!selectedUser?.role.includes("Admin") && (
                             <div className="grid grid-cols-4 items-center gap-4">
                                 <Label htmlFor="role" className="text-right">Role</Label>
-                                <Select value={newRole} onValueChange={(value) => setNewRole(value as "User" | "Admin")}>
+                                <Select value={newRole} onValueChange={(value) => setNewRole(value as "user" | "admin")}>
                                     <SelectTrigger className="col-span-3 cursor-pointer">
                                         <SelectValue placeholder="Select a role" />
                                     </SelectTrigger>

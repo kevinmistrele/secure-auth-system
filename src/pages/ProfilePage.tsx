@@ -1,48 +1,64 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
-import { useAuth } from "@/providers/auth-provider"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Pencil, Save, X } from "lucide-react"
+import { userStore, User } from "@/stores/user-store"
+import {useNavigate} from "react-router-dom";
+import {useAuth} from "@/providers/auth-provider.tsx"; // 👈 import do store
 
 export function ProfilePage() {
-    const { user, deleteAccount, updateProfile } = useAuth()
+    const { user: authUser } = useAuth(); // pega o user do AuthProvider também
+    const [user, setUser] = useState<User | null>(authUser ?? null) // inicia com authUser
     const [isEditing, setIsEditing] = useState(false)
-    const [formData, setFormData] = useState({
-        fullName: "",
-    })
+    const [formData, setFormData] = useState({ fullName: "" })
+    const navigate = useNavigate()
+
+    useEffect(() => {
+        const storedToken = localStorage.getItem("token")
+        const storedRole = localStorage.getItem("role")
+        const storedEmail = localStorage.getItem("email")
+        const storedFullName = localStorage.getItem("fullName")
+
+        if (storedToken && storedRole && storedEmail && storedFullName) {
+            const storedUser = {
+                fullName: storedFullName,
+                email: storedEmail,
+                role: storedRole as "admin" | "user"
+            }
+            setUser(storedUser)
+            userStore.setUser(storedUser) // 👈 isso que tava faltando!
+        }
+    }, [])
 
     if (!user) return null
 
     const handleEdit = () => {
-        setFormData({
-            fullName: user.fullName,
-        })
+        setFormData({ fullName: user.fullName })
         setIsEditing(true)
     }
 
-    const handleCancel = () => {
-        setIsEditing(false)
-    }
+    const handleCancel = () => setIsEditing(false)
 
     const handleSave = () => {
-        updateProfile({
-            fullName: formData.fullName,
-        })
+        const updatedUser = { ...user, fullName: formData.fullName }
+        userStore.setUser(updatedUser)
         setIsEditing(false)
     }
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target
-        setFormData((prev) => ({
-            ...prev,
-            [name]: value,
-        }))
+        setFormData((prev) => ({ ...prev, [name]: value }))
+    }
+
+    const logout = () => {
+        userStore.clear()
+        localStorage.removeItem("token")
+        localStorage.removeItem("role")
+        navigate("/login")
     }
 
     return (
@@ -51,9 +67,9 @@ export function ProfilePage() {
                 <CardHeader className="text-center">
                     <CardTitle className="text-2xl font-bold">My Profile</CardTitle>
                 </CardHeader>
+
                 <CardContent className="space-y-6">
                     {isEditing ? (
-                        // Edit Mode
                         <>
                             <div className="space-y-2">
                                 <Label htmlFor="fullName">Full Name</Label>
@@ -93,6 +109,7 @@ export function ProfilePage() {
                         </>
                     )}
                 </CardContent>
+
                 <CardFooter className="flex flex-col gap-4 justify-center pt-2 pb-6">
                     {isEditing ? (
                         <div className="flex gap-2 w-full">
@@ -122,7 +139,7 @@ export function ProfilePage() {
                     <Button
                         variant="outline"
                         className="w-full border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-colors cursor-pointer"
-                        onClick={deleteAccount}
+                        onClick={logout}
                     >
                         Delete My Account
                     </Button>

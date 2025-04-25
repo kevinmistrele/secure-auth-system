@@ -4,11 +4,16 @@ import React from "react";
 
 interface PrivateRouteProps {
     children: React.ReactNode;
-    allowedRoles?: ("User" | "Admin")[];
+    allowedRoles?: ("user" | "admin")[];
 }
 
 export function PrivateRoute({ children, allowedRoles }: PrivateRouteProps) {
-    const { isAuthenticated, user } = useAuth();
+    const { isAuthenticated, user, isLoading } = useAuth();
+
+    // Se os dados de autenticação estão carregando, não renderiza nada
+    if (isLoading) {
+        return <div>Loading...</div>; // Pode ser um loading spinner
+    }
 
     if (!isAuthenticated) {
         return <Navigate to="/login" replace />;

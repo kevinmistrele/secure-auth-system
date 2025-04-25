@@ -8,6 +8,8 @@ import {ProfileWrapper} from "@/components/ProfileWrapper.tsx";
 import {AdminWrapper} from "@/components/AdminWrapper.tsx";
 
 function AppRoutes() {
+    console.log("Rendering Routes...");
+
     return (
         <Routes>
             <Route path="/" element={<LoginPage />} />
@@ -16,6 +18,7 @@ function AppRoutes() {
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
 
+            {/* Rota protegida para Profile */}
             <Route
                 path="/profile"
                 element={
@@ -24,10 +27,12 @@ function AppRoutes() {
                     </PrivateRoute>
                 }
             />
+
+            {/* Rota protegida para Admin (somente Admin pode acessar) */}
             <Route
                 path="/admin"
                 element={
-                    <PrivateRoute allowedRoles={["Admin"]}>
+                    <PrivateRoute allowedRoles={["admin"]}>
                         <AdminWrapper />
                     </PrivateRoute>
                 }
@@ -35,6 +40,5 @@ function AppRoutes() {
         </Routes>
     );
 }
-
 
 export default AppRoutes;

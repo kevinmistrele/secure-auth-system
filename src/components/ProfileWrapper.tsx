@@ -8,11 +8,5 @@ export function ProfileWrapper() {
         return null;
     }
 
-    return (
-        <ProfilePage
-            fullName={user.fullName}
-            email={user.email}
-            role={user.role}
-        />
-    );
+    return <ProfilePage />;
 }
