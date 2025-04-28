@@ -9,10 +9,11 @@ import { CreateAdminComponent } from "@/components/CreateAdminComponent.tsx"
 import { Toaster } from "sonner"
 import {useAuth} from "@/providers/auth-provider.tsx";
 import {Navigate} from "react-router-dom";
+import {ProfilePage} from "@/pages/ProfilePage.tsx";
 
 export function AdminPage() {
     const {user, isAuthenticated} = useAuth();
-    const [activeTab, setActiveTab] = useState<"users" | "logs" | "create-admin">("users")
+    const [activeTab, setActiveTab] = useState<"users" | "logs" | "create-admin"| "profile">("users")
 
     if (!isAuthenticated) {
         // Se não estiver autenticado, redireciona para o login
@@ -55,6 +56,17 @@ export function AdminPage() {
                                 Register Admin
                             </Button>
                         </div>
+                        <div className="px-4 py-2">
+                            <Button
+                                variant={activeTab === "profile" ? "default" : "ghost"}
+                                className="w-full justify-start gap-2 font-medium cursor-pointer"
+                                onClick={() => setActiveTab("profile")}
+                            >
+                                <Users size={20}/>
+                                Profile
+                            </Button>
+
+                        </div>
                     </div>
                     <div className="p-4 border-t">
                         <Button
@@ -92,6 +104,15 @@ export function AdminPage() {
                             >
                                 <ShieldPlus size={20}/>
                             </Button>
+                            <Button
+                                variant={activeTab === "profile" ? "default" : "ghost"}
+                                size="icon"
+                                onClick={() => setActiveTab("profile")}
+                            >
+                                <Users size={20}/>
+                            </Button>
+
+
                             <Button variant="ghost" size="icon" className="text-red-500">
                                 <LogOut size={20}/>
                             </Button>
@@ -102,6 +123,7 @@ export function AdminPage() {
                         {activeTab === "users" && <UsersComponent/>}
                         {activeTab === "logs" && <LogsComponent/>}
                         {activeTab === "create-admin" && <CreateAdminComponent/>}
+                        {activeTab === "profile" && <ProfilePage />}
                     </div>
                 </div>
                 <Toaster/>
