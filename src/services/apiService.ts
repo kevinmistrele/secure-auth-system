@@ -53,11 +53,55 @@ const useApiService = () => {
         }
     }
 
+    const updateUser = async (userId: string, fullName: string, role: "user" | "admin") => {
+        try {
+            const response = await axiosInstance.put(`/users/${userId}`, { fullName, role });
+            return response.data;
+        } catch (error) {
+            console.error('Error updating user:', error);
+            throw error;
+        }
+    };
+
+    const deleteUser = async (userId: string) => {
+        try {
+            const response = await axiosInstance.delete(`/users/${userId}`);
+            return response.data;
+        } catch (error) {
+            console.error('Error deleting user:', error);
+            throw error;
+        }
+    };
+
+    const requestPasswordReset = async (email: string) => {
+        try {
+            const response = await axiosInstance.post('/request-password-reset', { email });
+            return response.data.success;
+        } catch (error) {
+            console.error('Error requesting password reset:', error);
+            return false;
+        }
+    };
+
+    const resetPassword = async (token: string, newPassword: string) => {
+        try {
+            const response = await axiosInstance.post('/reset-password', { token, newPassword });
+            return response.data.success;  // Retorna sucesso se tudo der certo
+        } catch (error) {
+            console.error('Error resetting password:', error);
+            return false;
+        }
+    };
+
     return {
         getUsers,
         registerUser,
         loginUser,
         registerAdmin,
+        updateUser,
+        deleteUser,
+        requestPasswordReset,
+        resetPassword
     };
 };
 

@@ -1,6 +1,7 @@
 import { BehaviorSubject } from "rxjs"
 
 export interface User {
+    id: string;
     fullName: string
     email: string
     role: "user" | "admin"

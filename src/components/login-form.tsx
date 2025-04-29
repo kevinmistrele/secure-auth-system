@@ -28,6 +28,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"form">)
 
       // Cria o objeto de usuário completo
       const userData = {
+        id: response.id,
         fullName: response.fullName, // ✅ agora pega do backend
         email: response.email,       // ✅ pega do backend
         role: normalizedRole as "user" | "admin",
@@ -36,6 +37,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"form">)
       console.log('dados sendo guardeados: ',userData);
 
       // Armazena dados no localStorage
+      localStorage.setItem("id", response.id);
       localStorage.setItem("token", response.token)
       localStorage.setItem("role", normalizedRole)
       localStorage.setItem("email", response.email)

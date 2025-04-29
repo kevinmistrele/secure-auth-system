@@ -8,17 +8,27 @@ import { LogsComponent } from "@/components/LogsComponent.tsx"
 import { CreateAdminComponent } from "@/components/CreateAdminComponent.tsx"
 import { Toaster } from "sonner"
 import {useAuth} from "@/providers/auth-provider.tsx";
-import {Navigate} from "react-router-dom";
+import {Navigate, useNavigate} from "react-router-dom";
 import {ProfilePage} from "@/pages/ProfilePage.tsx";
+import {userStore} from "@/stores/user-store.ts";
 
 export function AdminPage() {
     const {user, isAuthenticated} = useAuth();
     const [activeTab, setActiveTab] = useState<"users" | "logs" | "create-admin"| "profile">("users")
+    const navigate = useNavigate();
 
     if (!isAuthenticated) {
         // Se não estiver autenticado, redireciona para o login
         return <Navigate to="/login" replace/>;
     }
+
+    const logout = () => {
+        userStore.clear();
+        localStorage.removeItem("token");
+        localStorage.removeItem("role");
+        localStorage.removeItem("id");  // Remove o id ao fazer logout
+        navigate("/login");
+    };
 
     if (user?.role === "admin") {
         return (
@@ -72,6 +82,7 @@ export function AdminPage() {
                         <Button
                             variant="ghost"
                             className="w-full justify-start gap-2 text-red-500 hover:text-red-600 hover:bg-red-50 cursor-pointer"
+                            onClick={() => logout()}
                         >
                             <LogOut size={18}/>
                             Logout

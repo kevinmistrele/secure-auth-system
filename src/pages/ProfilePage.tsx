@@ -6,31 +6,39 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Pencil, Save, X } from "lucide-react"
-import { userStore, User } from "@/stores/user-store"
-import {useNavigate} from "react-router-dom";
-import {useAuth} from "@/providers/auth-provider.tsx"; // 👈 import do store
+import { userStore, type User } from "@/stores/user-store"
+import { useNavigate } from "react-router-dom"
+import { useAuth } from "@/providers/auth-provider.tsx"
+import { toast } from "sonner"
+import useApiService from "@/services/apiService.ts" // 👈 import do serviço da API
+import { ConfirmationModal } from "@/components/modal/confirmation-modal.tsx"
 
 export function ProfilePage() {
-    const { user: authUser } = useAuth(); // pega o user do AuthProvider também
-    const [user, setUser] = useState<User | null>(authUser ?? null) // inicia com authUser
+    const { user: authUser } = useAuth()
+    const [user, setUser] = useState<User | null>(authUser ?? null)
     const [isEditing, setIsEditing] = useState(false)
     const [formData, setFormData] = useState({ fullName: "" })
+    const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false) // Para o modal de confirmação de deletar
+    const [userIdToDelete, setUserIdToDelete] = useState<string | null>(null) // Para armazenar o id do usuário a ser deletado
     const navigate = useNavigate()
+    const { updateUser, deleteUser } = useApiService()
 
     useEffect(() => {
         const storedToken = localStorage.getItem("token")
         const storedRole = localStorage.getItem("role")
         const storedEmail = localStorage.getItem("email")
         const storedFullName = localStorage.getItem("fullName")
+        const storedUserId = localStorage.getItem("id") // Pega o ID do usuário
 
-        if (storedToken && storedRole && storedEmail && storedFullName) {
+        if (storedToken && storedRole && storedEmail && storedFullName && storedUserId) {
             const storedUser = {
+                id: storedUserId,
                 fullName: storedFullName,
                 email: storedEmail,
-                role: storedRole as "admin" | "user"
+                role: storedRole as "admin" | "user",
             }
             setUser(storedUser)
-            userStore.setUser(storedUser) // 👈 isso que tava faltando!
+            userStore.setUser(storedUser)
         }
     }, [])
 
@@ -43,10 +51,19 @@ export function ProfilePage() {
 
     const handleCancel = () => setIsEditing(false)
 
-    const handleSave = () => {
+    const handleSave = async () => {
         const updatedUser = { ...user, fullName: formData.fullName }
         userStore.setUser(updatedUser)
         setIsEditing(false)
+
+        try {
+            const response = await updateUser(user.id, formData.fullName)
+            setUser(response.user)
+            localStorage.setItem("fullName", response.user.fullName)
+            toast.success("Profile updated successfully")
+        } catch {
+            toast.error("Error updating profile")
+        }
     }
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -54,97 +71,121 @@ export function ProfilePage() {
         setFormData((prev) => ({ ...prev, [name]: value }))
     }
 
+    const handleDelete = (userId: string) => {
+        setUserIdToDelete(userId)
+        setIsConfirmDeleteOpen(true)
+    }
+
+    const handleConfirmDelete = async () => {
+        if (!userIdToDelete) return
+
+        try {
+            await deleteUser(userIdToDelete)
+            toast.success("Account deleted successfully")
+            logout()
+        } catch {
+            toast.error("Error deleting account")
+        }
+    }
+
     const logout = () => {
         userStore.clear()
         localStorage.removeItem("token")
         localStorage.removeItem("role")
+        localStorage.removeItem("id")
         navigate("/login")
     }
 
     return (
-        <div className="flex justify-center items-center min-h-[80vh] w-full">
-            <Card className="w-full max-w-md">
-                <CardHeader className="text-center">
-                    <CardTitle className="text-2xl font-bold">My Profile</CardTitle>
-                </CardHeader>
-
-                <CardContent className="space-y-6">
-                    {isEditing ? (
-                        <>
-                            <div className="space-y-2">
-                                <Label htmlFor="fullName">Full Name</Label>
-                                <Input
-                                    id="fullName"
-                                    name="fullName"
-                                    value={formData.fullName}
-                                    onChange={handleChange}
-                                    placeholder="Enter your full name"
-                                />
-                            </div>
-                            <div className="space-y-1">
-                                <p className="text-sm text-muted-foreground">Email Address</p>
-                                <p className="text-lg font-bold">{user.email}</p>
-                                <p className="text-xs text-muted-foreground mt-1">Email cannot be changed</p>
-                            </div>
-                            <div className="space-y-1">
-                                <p className="text-sm text-muted-foreground">Role</p>
-                                <p className="text-lg font-bold">{user.role}</p>
-                                <p className="text-xs text-muted-foreground mt-1">Role cannot be changed by the user</p>
-                            </div>
-                        </>
-                    ) : (
-                        <>
-                            <div className="space-y-1">
-                                <p className="text-sm text-muted-foreground">Full Name</p>
-                                <p className="text-lg font-bold">{user.fullName}</p>
-                            </div>
-                            <div className="space-y-1">
-                                <p className="text-sm text-muted-foreground">Email Address</p>
-                                <p className="text-lg font-bold">{user.email}</p>
-                            </div>
-                            <div className="space-y-1">
-                                <p className="text-sm text-muted-foreground">Role</p>
-                                <p className="text-lg font-bold">{user.role}</p>
-                            </div>
-                        </>
-                    )}
-                </CardContent>
-
-                <CardFooter className="flex flex-col gap-4 justify-center pt-2 pb-6">
-                    {isEditing ? (
-                        <div className="flex gap-2 w-full">
-                            <Button
-                                variant="outline"
-                                className="flex-1 border-gray-300 hover:bg-gray-100 hover:text-gray-800"
-                                onClick={handleCancel}
-                            >
-                                <X size={16} className="mr-2" />
-                                Cancel
-                            </Button>
-                            <Button className="flex-1" onClick={handleSave}>
-                                <Save size={16} className="mr-2" />
-                                Save Changes
-                            </Button>
+        <Card className="w-full max-w-md mx-auto my-8">
+            <CardHeader>
+                <CardTitle className="text-2xl font-bold">My Profile</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                {isEditing ? (
+                    <>
+                        <div className="space-y-2">
+                            <Label htmlFor="fullName">Full Name</Label>
+                            <Input
+                                id="fullName"
+                                name="fullName"
+                                value={formData.fullName}
+                                onChange={handleChange}
+                                placeholder="Enter your full name"
+                            />
                         </div>
-                    ) : (
+                        <div className="space-y-1">
+                            <p className="text-sm text-muted-foreground">Email Address</p>
+                            <p className="text-lg font-bold">{user.email}</p>
+                        </div>
+                        <div className="space-y-1">
+                            <p className="text-sm text-muted-foreground">Role</p>
+                            <p className="text-lg font-bold">{user.role}</p>
+                        </div>
+                    </>
+                ) : (
+                    <>
+                        <div className="space-y-1">
+                            <p className="text-sm text-muted-foreground">Full Name</p>
+                            <p className="text-lg font-bold">{user.fullName}</p>
+                        </div>
+                        <div className="space-y-1">
+                            <p className="text-sm text-muted-foreground">Email Address</p>
+                            <p className="text-lg font-bold">{user.email}</p>
+                        </div>
+                        <div className="space-y-1">
+                            <p className="text-sm text-muted-foreground">Role</p>
+                            <p className="text-lg font-bold">{user.role}</p>
+                        </div>
+                    </>
+                )}
+            </CardContent>
+
+            <CardFooter className="flex flex-col gap-4 justify-center pt-2 pb-6">
+                {isEditing ? (
+                    <div className="flex gap-2 w-full">
                         <Button
                             variant="outline"
-                            className="w-full mb-4 border-gray-300 hover:bg-gray-100 hover:text-gray-800"
-                            onClick={handleEdit}
+                            className="flex-1 border-gray-300 hover:bg-gray-100 hover:text-gray-800"
+                            onClick={handleCancel}
                         >
-                            <Pencil size={16} className="mr-2" />
-                            Edit Profile
+                            <X size={16} className="mr-2" />
+                            Cancel
                         </Button>
-                    )}
+                        <Button className="flex-1" onClick={handleSave}>
+                            <Save size={16} className="mr-2" />
+                            Save Changes
+                        </Button>
+                    </div>
+                ) : (
                     <Button
                         variant="outline"
-                        className="w-full border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-colors cursor-pointer"
-                        onClick={logout}
+                        className="w-full mb-4 border-gray-300 hover:bg-gray-100 hover:text-gray-800"
+                        onClick={handleEdit}
                     >
-                        Delete My Account
+                        <Pencil size={16} className="mr-2" />
+                        Edit Profile
                     </Button>
-                </CardFooter>
-            </Card>
-        </div>
+                )}
+                <Button
+                    variant="outline"
+                    className="w-full border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-colors cursor-pointer"
+                    onClick={() => handleDelete(user.id)} // Chama a função de exclusão
+                >
+                    Delete My Account
+                </Button>
+            </CardFooter>
+
+            <ConfirmationModal
+                isOpen={isConfirmDeleteOpen}
+                onClose={() => setIsConfirmDeleteOpen(false)}
+                onConfirm={handleConfirmDelete}
+                title="Are you sure?"
+                description="Are you sure you want to delete this user? This action cannot be undone."
+                confirmText="Yes, Delete"
+                cancelText="Cancel"
+                confirmVariant="destructive"
+            />
+        </Card>
     )
 }

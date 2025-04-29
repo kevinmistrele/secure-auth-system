@@ -1,5 +1,5 @@
 import { useAuth } from "@/providers/auth-provider";
-import { ProfilePage } from "@/pages/ProfilePage";
+import {UserPage} from "@/pages/UserPage.tsx";
 
 export function ProfileWrapper() {
     const { user } = useAuth();
@@ -8,5 +8,5 @@ export function ProfileWrapper() {
         return null;
     }
 
-    return <ProfilePage />;
+    return <UserPage />;
 }

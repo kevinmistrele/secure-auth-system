@@ -2,23 +2,30 @@ import { Label } from "@radix-ui/react-label";
 import { Input } from "@/components/ui/input.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Link } from "react-router-dom";
-import { requestPasswordReset } from "@/services/user-service";
 import { toast } from "sonner";
+import useApiService from "@/services/apiService.ts";
 
 export function ForgotPasswordPage() {
+    const { requestPasswordReset } = useApiService();
+
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
         const email = formData.get("email") as string;
 
-        const success = await requestPasswordReset(email);
+        try {
+            const success = await requestPasswordReset(email);
 
-        if (success) {
-            toast.success("Link de redefinição enviado para seu e-mail!");
-        } else {
-            toast.error("E-mail não encontrado.");
+            if (success) {
+                toast.success("Link de redefinição enviado para seu e-mail!");
+            } else {
+                toast.error("E-mail não encontrado ou erro ao enviar.");
+            }
+        } catch {
+            toast.error("Ocorreu um erro ao tentar redefinir a senha.");
         }
     }
+
 
     return (
         <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 py-12 px-4 dark:bg-gray-950">

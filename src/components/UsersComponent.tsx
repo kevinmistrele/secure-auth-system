@@ -19,6 +19,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useAuth } from "@/providers/auth-provider.tsx"
 import { toast } from "sonner"
 import useApiService from "@/services/apiService.ts";
+import {userStore} from "@/stores/user-store.ts";
+import {useNavigate} from "react-router-dom";
+import {ConfirmationModal} from "@/components/modal/confirmation-modal.tsx";
 
 export interface User {
     id: string
@@ -32,9 +35,12 @@ interface UsersComponentProps {
 }
 
 export function UsersComponent({ users = [] }: UsersComponentProps) {
-    const { getUsers } = useApiService() // Usando o hook de serviço para chamadas API
+    const { getUsers, deleteUser } = useApiService() // Usando o hook de serviço para chamadas API
     const [sampleUsers, setSampleUsers] = useState<User[]>(users)
     const [currentPage, setCurrentPage] = useState(1)
+    const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false); // Estado para o modal de confirmação
+    const [userIdToDelete, setUserIdToDelete] = useState<string | null>(null); // Estado para armazenar o ID do usuário a ser deletado
+    const { updateUser } = useApiService();
     const itemsPerPage = 12
     const totalPages = Math.ceil(sampleUsers.length / itemsPerPage)
     const currentUsers = sampleUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
@@ -45,8 +51,8 @@ export function UsersComponent({ users = [] }: UsersComponentProps) {
     const [newRole, setNewRole] = useState<"user" | "admin">("user")
     const [showAdminError, setShowAdminError] = useState(false)
     const [newName, setNewName] = useState("")
-    const { user: loggedUser, updateProfile } = useAuth()
-
+    const { user: loggedUser } = useAuth()
+    const navigate = useNavigate();
     // Carregar usuários ao montar o componente
     useEffect(() => {
         const loadUsers = async () => {
@@ -73,36 +79,71 @@ export function UsersComponent({ users = [] }: UsersComponentProps) {
     }
 
     const handleOpenEditModal = (user: User) => {
+        console.log('valores de user', user)
         setSelectedUser(user)
         setNewName(user.name)
         setNewRole(user.role)
         setIsModalOpen(true)
     }
 
+    const logout = () => {
+        userStore.clear();
+        localStorage.removeItem("token");
+        localStorage.removeItem("role");
+        localStorage.removeItem("id");  // Remove o id ao fazer logout
+        navigate("/login");
+    };
+
+    const handleConfirmDelete = async () => {
+        try {
+            // Chama a API para deletar o usuário
+            await deleteUser(userIdToDelete!);
+            toast.success("User deleted successfully");
+
+            // Remove o usuário da lista local (no estado)
+            setSampleUsers((prevUsers) => prevUsers.filter((user) => user.id !== userIdToDelete));
+
+            // Se o usuário excluído for o usuário logado, faz o logout e redireciona para a página de login
+            if (userIdToDelete === loggedUser?.id) {
+                logout();
+            }
+            setIsConfirmDeleteOpen(false); // Fecha o modal após a exclusão
+        } catch (error) {
+            toast.error("Error deleting user");
+            console.error(error);
+        }
+    }
+
+
+    const handleDelete = (userId: string) => {
+        setUserIdToDelete(userId); // Armazenar o ID do usuário a ser excluído
+        setIsConfirmDeleteOpen(true); // Abre o modal de confirmação
+    };
+
     const handleUpdateUser = async () => {
-        if (!selectedUser) return
+        if (!selectedUser) return;
 
         try {
             const updatedUsers = sampleUsers.map((user) =>
                 user.id === selectedUser.id
-                    ? { ...user, name: newName, role: selectedUser.role === "admin" ? "admin" : newRole }
+                    ? { ...user, name: newName, role: newRole }
                     : user
-            )
+            );
 
-            setSampleUsers(updatedUsers)
+            setSampleUsers(updatedUsers);
 
-            if (selectedUser.email === loggedUser?.email) {
-                updateProfile({ fullName: newName })
-            }
+            // Chama a função de atualização da API
+             await updateUser(selectedUser.id, newName, newRole);
 
-            toast.success(`User has been updated successfully!`)
-            setIsModalOpen(false)
-            setSelectedUser(null)
+            toast.success("User has been updated successfully!");
+            setIsModalOpen(false);
+            setSelectedUser(null);
         } catch (error) {
-            toast.error("Error updating user!")
-            console.error(error)
+            toast.error("Error updating user!");
+            console.error(error);
         }
-    }
+    };
+
 
     return (
         <>
@@ -147,6 +188,7 @@ export function UsersComponent({ users = [] }: UsersComponentProps) {
                                             size="sm"
                                             variant="outline"
                                             className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white cursor-pointer"
+                                            onClick={() => handleDelete(user.id)}
                                         >
                                             Delete User
                                         </Button>
@@ -254,28 +296,36 @@ export function UsersComponent({ users = [] }: UsersComponentProps) {
                             />
                         </div>
 
-                        {!selectedUser?.role.includes("Admin") && (
-                            <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="role" className="text-right">Role</Label>
-                                <Select value={newRole} onValueChange={(value) => setNewRole(value as "user" | "admin")}>
-                                    <SelectTrigger className="col-span-3 cursor-pointer">
-                                        <SelectValue placeholder="Select a role" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem className="cursor-pointer"  value="User">User</SelectItem>
-                                        <SelectItem className="cursor-pointer"  value="Admin">Admin</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        )}
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="role" className="text-right">Role</Label>
+                            <Select value={newRole} onValueChange={(value) => setNewRole(value as "user" | "admin")}>
+                                <SelectTrigger className="col-span-3 cursor-pointer">
+                                    <SelectValue placeholder="Select a role" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem className="cursor-pointer" value="user">User</SelectItem>
+                                    <SelectItem className="cursor-pointer" value="admin">Admin</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
 
                     <DialogFooter>
-                        <Button className="cursor-pointer"  variant="outline" onClick={() => setIsModalOpen(false)}>Cancel</Button>
+                        <Button className="cursor-pointer" variant="outline" onClick={() => setIsModalOpen(false)}>Cancel</Button>
                         <Button className="cursor-pointer" onClick={handleUpdateUser}>Save changes</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+            <ConfirmationModal
+                isOpen={isConfirmDeleteOpen}
+                onClose={() => setIsConfirmDeleteOpen(false)}
+                onConfirm={handleConfirmDelete}
+                title="Are you sure?"
+                description="Are you sure you want to delete this user? This action cannot be undone."
+                confirmText="Yes, Delete"
+                cancelText="Cancel"
+                confirmVariant="destructive"
+            />
         </>
     )
 }

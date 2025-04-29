@@ -3,6 +3,7 @@ import { addLog } from "@/services/log-service";
 import { toast } from "sonner";
 
 export interface User {
+    id: string;
     fullName: string;
     email: string;
     role: "user" | "admin";
@@ -34,11 +35,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Verificar se o token existe no localStorage e restaurar o usuário
         const storedToken = localStorage.getItem("token");
         const storedRole = localStorage.getItem("role");
+        const storedEmail = localStorage.getItem("email");
+        const storedFullName = localStorage.getItem("fullName");
+        const storedUserId = localStorage.getItem("id"); //
         if (storedToken && storedRole) {
             // Restaurar o usuário com base no token e role armazenados
             const storedUser = {
-                fullName: "Mocked User", // Ou recupere esses dados via API se necessário
-                email: "user@example.com", // Idem
+                id: storedUserId, // Atribui o id
+                fullName: storedFullName,
+                email: storedEmail,
                 role: storedRole as "admin" | "user",
                 token: storedToken,
             };

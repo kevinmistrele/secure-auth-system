@@ -4,30 +4,39 @@ import { Button } from "@/components/ui/button.tsx";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card.tsx";
 import { Eye } from "lucide-react";
 import { useState } from "react";
-import { resetPassword } from "@/services/user-service";
 import { toast } from "sonner";
+import useApiService from "@/services/apiService.ts";
+import {useNavigate} from "react-router-dom";
 
 export function ResetPasswordPage() {
     const [showPassword, setShowPassword] = useState(false);
+    const { resetPassword } = useApiService();
+    const navigate = useNavigate()
+
+    const token = new URLSearchParams(window.location.search).get("token") || ""; // Obtendo o token da URL
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
         const password = formData.get("password") as string;
         const confirmPassword = formData.get("confirmPassword") as string;
-        const email = formData.get("email") as string;
 
         if (password !== confirmPassword) {
             toast.error("Passwords do not match!");
             return;
         }
 
-        const success = await resetPassword(email, password);
+        try {
+            const success = await resetPassword(token, password);
 
-        if (success) {
-            toast.success("Password reset successfully!");
-        } else {
-            toast.error("Email not found!");
+            if (success) {
+                toast.success("Password reset successfully!");
+                navigate("/login");
+            } else {
+                toast.error("Invalid token or error resetting password.");
+            }
+        } catch {
+            toast.error("An unexpected error occurred.");
         }
     }
 
@@ -36,14 +45,10 @@ export function ResetPasswordPage() {
             <Card className="w-full max-w-md">
                 <CardHeader>
                     <CardTitle className="text-2xl">Create new password</CardTitle>
-                    <CardDescription>Enter your email and a new password for your account</CardDescription>
+                    <CardDescription>Enter a new password for your account</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit} className="grid gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="email">Email</Label>
-                            <Input id="email" name="email" type="email" required />
-                        </div>
                         <div className="space-y-2">
                             <Label htmlFor="password">New Password</Label>
                             <div className="relative">
