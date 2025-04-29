@@ -13,7 +13,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"form">)
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const navigate = useNavigate(); // useNavigate para redirecionamento
+  const navigate = useNavigate();
   const { loginUser } = useApiService();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -23,31 +23,26 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"form">)
     try {
       const response = await loginUser(email, password);
 
-      // Normaliza a role para manter padrão
       const normalizedRole = response.role.toLowerCase() === "admin" ? "admin" : "user";
 
-      // Cria o objeto de usuário completo
       const userData = {
         id: response.id,
-        fullName: response.fullName, // ✅ agora pega do backend
-        email: response.email,       // ✅ pega do backend
+        fullName: response.fullName,
+        email: response.email,
         role: normalizedRole as "user" | "admin",
       };
 
       console.log('dados sendo guardeados: ',userData);
 
-      // Armazena dados no localStorage
       localStorage.setItem("id", response.id);
       localStorage.setItem("token", response.token)
       localStorage.setItem("role", normalizedRole)
       localStorage.setItem("email", response.email)
       localStorage.setItem("fullName", response.fullName)
 
-      // Atualiza contexto e store
       login(userData, response.token);
-      userStore.setUser(userData); // 👈 atualiza o BehaviorSubject
+      userStore.setUser(userData);
 
-      // Redireciona baseado na role
       if (normalizedRole === "admin") {
         navigate("/admin");
       } else {
@@ -67,7 +62,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"form">)
             Enter your email below to login to your account
           </p>
         </div>
-        {error && <p className="text-red-500 text-center">{error}</p>} {/* Mensagem de erro */}
+        {error && <p className="text-red-500 text-center">{error}</p>}
         <div className="grid gap-6">
           <div className="grid gap-3">
             <Label htmlFor="email">Email</Label>
@@ -78,7 +73,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"form">)
                 placeholder="fabiano@example.com"
                 required
                 value={email}
-                onChange={(e) => setEmail(e.target.value)} // Atualiza o estado do email
+                onChange={(e) => setEmail(e.target.value)}
             />
           </div>
           <div className="grid gap-3">
@@ -97,7 +92,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"form">)
                 type="password"
                 required
                 value={password}
-                onChange={(e) => setPassword(e.target.value)} // Atualiza o estado da senha
+                onChange={(e) => setPassword(e.target.value)}
             />
           </div>
           <Button type="submit" className="w-full">

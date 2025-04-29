@@ -35,17 +35,16 @@ interface UsersComponentProps {
 }
 
 export function UsersComponent({ users = [] }: UsersComponentProps) {
-    const { getUsers, deleteUser } = useApiService() // Usando o hook de serviço para chamadas API
+    const { getUsers, deleteUser } = useApiService()
     const [sampleUsers, setSampleUsers] = useState<User[]>(users)
     const [currentPage, setCurrentPage] = useState(1)
-    const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false); // Estado para o modal de confirmação
-    const [userIdToDelete, setUserIdToDelete] = useState<string | null>(null); // Estado para armazenar o ID do usuário a ser deletado
+    const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
+    const [userIdToDelete, setUserIdToDelete] = useState<string | null>(null);
     const { updateUser } = useApiService();
     const itemsPerPage = 12
     const totalPages = Math.ceil(sampleUsers.length / itemsPerPage)
     const currentUsers = sampleUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
 
-    // Modal state
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [selectedUser, setSelectedUser] = useState<User | null>(null)
     const [newRole, setNewRole] = useState<"user" | "admin">("user")
@@ -53,7 +52,6 @@ export function UsersComponent({ users = [] }: UsersComponentProps) {
     const [newName, setNewName] = useState("")
     const { user: loggedUser } = useAuth()
     const navigate = useNavigate();
-    // Carregar usuários ao montar o componente
     useEffect(() => {
         const loadUsers = async () => {
             try {
@@ -90,24 +88,21 @@ export function UsersComponent({ users = [] }: UsersComponentProps) {
         userStore.clear();
         localStorage.removeItem("token");
         localStorage.removeItem("role");
-        localStorage.removeItem("id");  // Remove o id ao fazer logout
+        localStorage.removeItem("id");
         navigate("/login");
     };
 
     const handleConfirmDelete = async () => {
         try {
-            // Chama a API para deletar o usuário
             await deleteUser(userIdToDelete!);
             toast.success("User deleted successfully");
 
-            // Remove o usuário da lista local (no estado)
             setSampleUsers((prevUsers) => prevUsers.filter((user) => user.id !== userIdToDelete));
 
-            // Se o usuário excluído for o usuário logado, faz o logout e redireciona para a página de login
             if (userIdToDelete === loggedUser?.id) {
                 logout();
             }
-            setIsConfirmDeleteOpen(false); // Fecha o modal após a exclusão
+            setIsConfirmDeleteOpen(false);
         } catch (error) {
             toast.error("Error deleting user");
             console.error(error);
@@ -116,8 +111,8 @@ export function UsersComponent({ users = [] }: UsersComponentProps) {
 
 
     const handleDelete = (userId: string) => {
-        setUserIdToDelete(userId); // Armazenar o ID do usuário a ser excluído
-        setIsConfirmDeleteOpen(true); // Abre o modal de confirmação
+        setUserIdToDelete(userId);
+        setIsConfirmDeleteOpen(true);
     };
 
     const handleUpdateUser = async () => {
@@ -132,7 +127,6 @@ export function UsersComponent({ users = [] }: UsersComponentProps) {
 
             setSampleUsers(updatedUsers);
 
-            // Chama a função de atualização da API
              await updateUser(selectedUser.id, newName, newRole);
 
             toast.success("User has been updated successfully!");
@@ -140,7 +134,6 @@ export function UsersComponent({ users = [] }: UsersComponentProps) {
             setSelectedUser(null);
         } catch (error) {
             toast.error("Error updating user!");
-            console.error(error);
         }
     };
 

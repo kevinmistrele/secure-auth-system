@@ -18,7 +18,6 @@ export function AdminPage() {
     const navigate = useNavigate();
 
     if (!isAuthenticated) {
-        // Se não estiver autenticado, redireciona para o login
         return <Navigate to="/login" replace/>;
     }
 
@@ -26,7 +25,7 @@ export function AdminPage() {
         userStore.clear();
         localStorage.removeItem("token");
         localStorage.removeItem("role");
-        localStorage.removeItem("id");  // Remove o id ao fazer logout
+        localStorage.removeItem("id");
         navigate("/login");
     };
 

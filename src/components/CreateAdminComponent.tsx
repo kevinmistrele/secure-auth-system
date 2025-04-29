@@ -59,7 +59,6 @@ export function CreateAdminComponent() {
 
             form.reset()
 
-            // Redirecionar pro login se quiser
             navigate("/login")
         } catch (error) {
             toast.error("Failed to create admin", {

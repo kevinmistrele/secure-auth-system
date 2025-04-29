@@ -10,7 +10,7 @@ import { userStore, type User } from "@/stores/user-store"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "@/providers/auth-provider.tsx"
 import { toast } from "sonner"
-import useApiService from "@/services/apiService.ts" // 👈 import do serviço da API
+import useApiService from "@/services/apiService.ts"
 import { ConfirmationModal } from "@/components/modal/confirmation-modal.tsx"
 
 export function ProfilePage() {
@@ -18,8 +18,8 @@ export function ProfilePage() {
     const [user, setUser] = useState<User | null>(authUser ?? null)
     const [isEditing, setIsEditing] = useState(false)
     const [formData, setFormData] = useState({ fullName: "" })
-    const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false) // Para o modal de confirmação de deletar
-    const [userIdToDelete, setUserIdToDelete] = useState<string | null>(null) // Para armazenar o id do usuário a ser deletado
+    const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false)
+    const [userIdToDelete, setUserIdToDelete] = useState<string | null>(null)
     const navigate = useNavigate()
     const { updateUser, deleteUser } = useApiService()
 
@@ -28,7 +28,7 @@ export function ProfilePage() {
         const storedRole = localStorage.getItem("role")
         const storedEmail = localStorage.getItem("email")
         const storedFullName = localStorage.getItem("fullName")
-        const storedUserId = localStorage.getItem("id") // Pega o ID do usuário
+        const storedUserId = localStorage.getItem("id")
 
         if (storedToken && storedRole && storedEmail && storedFullName && storedUserId) {
             const storedUser = {
@@ -170,7 +170,7 @@ export function ProfilePage() {
                 <Button
                     variant="outline"
                     className="w-full border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-colors cursor-pointer"
-                    onClick={() => handleDelete(user.id)} // Chama a função de exclusão
+                    onClick={() => handleDelete(user.id)}
                 >
                     Delete My Account
                 </Button>

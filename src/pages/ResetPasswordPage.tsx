@@ -13,7 +13,7 @@ export function ResetPasswordPage() {
     const { resetPassword } = useApiService();
     const navigate = useNavigate()
 
-    const token = new URLSearchParams(window.location.search).get("token") || ""; // Obtendo o token da URL
+    const token = new URLSearchParams(window.location.search).get("token") || "";
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();

@@ -1,18 +1,17 @@
-import { useAuth } from "@/providers/auth-provider.tsx";  // Certifique-se de que o caminho esteja correto
+import { useAuth } from "@/providers/auth-provider.tsx";
 import axios from "axios";
 
 const useApiService = () => {
-    const { user } = useAuth();  // Usando o hook dentro do hook personalizado
+    const { user } = useAuth();
 
     const axiosInstance = axios.create({
-        baseURL: 'http://localhost:3001/api',  // URL base da sua API
+        baseURL: 'http://localhost:3001/api',
     });
 
     if (user && user.token) {
         axiosInstance.defaults.headers['Authorization'] = `Bearer ${user.token}`;
     }
 
-    // Funções para interagir com os endpoints
     const getUsers = async () => {
         try {
             const response = await axiosInstance.get('/users');
@@ -86,7 +85,7 @@ const useApiService = () => {
     const resetPassword = async (token: string, newPassword: string) => {
         try {
             const response = await axiosInstance.post('/reset-password', { token, newPassword });
-            return response.data.success;  // Retorna sucesso se tudo der certo
+            return response.data.success;
         } catch (error) {
             console.error('Error resetting password:', error);
             return false;

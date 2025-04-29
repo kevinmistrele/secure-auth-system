@@ -1,5 +1,3 @@
-// src/services/log-service.ts
-
 const logs: string[] = [];
 
 export function addLog(message: string) {

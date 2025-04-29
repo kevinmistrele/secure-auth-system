@@ -22,26 +22,24 @@ interface AuthContextType {
     logout: () => void;
     deleteAccount: () => void;
     updateProfile: (data: UpdateProfileData) => void;
-    isLoading: boolean; // Novo estado para o carregamento
+    isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
-    const [isLoading, setIsLoading] = useState(true); // Estado de carregamento
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        // Verificar se o token existe no localStorage e restaurar o usuário
         const storedToken = localStorage.getItem("token");
         const storedRole = localStorage.getItem("role");
         const storedEmail = localStorage.getItem("email");
         const storedFullName = localStorage.getItem("fullName");
-        const storedUserId = localStorage.getItem("id"); //
+        const storedUserId = localStorage.getItem("id");
         if (storedToken && storedRole) {
-            // Restaurar o usuário com base no token e role armazenados
             const storedUser = {
-                id: storedUserId, // Atribui o id
+                id: storedUserId,
                 fullName: storedFullName,
                 email: storedEmail,
                 role: storedRole as "admin" | "user",
@@ -49,7 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             };
             setUser(storedUser);
         }
-        setIsLoading(false); // Finalizar carregamento
+        setIsLoading(false);
     }, []);
 
     const login = (userData: User, token: string) => {

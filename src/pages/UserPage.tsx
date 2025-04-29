@@ -8,14 +8,14 @@ import { userStore } from "@/stores/user-store"
 import {ProfilePage} from "@/pages/ProfilePage.tsx";
 
 export function UserPage() {
-    const [activeTab, setActiveTab] = useState("profile") // Para controlar a aba ativa
+    const [activeTab, setActiveTab] = useState("profile")
     const navigate = useNavigate()
 
     const logout = () => {
         userStore.clear()
         localStorage.removeItem("token")
         localStorage.removeItem("role")
-        localStorage.removeItem("id") // Remove o id ao fazer logout
+        localStorage.removeItem("id")
         navigate("/login")
     }
 

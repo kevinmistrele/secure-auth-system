@@ -10,9 +10,8 @@ interface PrivateRouteProps {
 export function PrivateRoute({ children, allowedRoles }: PrivateRouteProps) {
     const { isAuthenticated, user, isLoading } = useAuth();
 
-    // Se os dados de autenticação estão carregando, não renderiza nada
     if (isLoading) {
-        return <div>Loading...</div>; // Pode ser um loading spinner
+        return <div>Loading...</div>;
     }
 
     if (!isAuthenticated) {

@@ -27,7 +27,7 @@ export function RegisterForm({ className, ...props }: React.ComponentProps<"form
 
         try {
             await registerUser({ name, email, password })
-            navigate("/login") // Redireciona após registro
+            navigate("/login")
         } catch {
             setError("Error registering user. Try a different email.")
         }
