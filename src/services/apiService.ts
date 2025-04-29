@@ -93,6 +93,17 @@ const useApiService = () => {
         }
     };
 
+    const getLogs = async () => {
+        try {
+            const response = await axiosInstance.get('/logs');
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching logs:', error);
+            throw error;
+        }
+    };
+
+
     return {
         getUsers,
         registerUser,
@@ -101,7 +112,8 @@ const useApiService = () => {
         updateUser,
         deleteUser,
         requestPasswordReset,
-        resetPassword
+        resetPassword,
+        getLogs
     };
 };
 
