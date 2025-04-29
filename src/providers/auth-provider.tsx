@@ -39,12 +39,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const storedUserId = localStorage.getItem("id");
         if (storedToken && storedRole) {
             const storedUser = {
-                id: storedUserId,
-                fullName: storedFullName,
-                email: storedEmail,
+                id: storedUserId ?? "",
+                fullName: storedFullName ?? "",
+                email: storedEmail ?? "",
                 role: storedRole as "admin" | "user",
                 token: storedToken,
             };
+
             setUser(storedUser);
         }
         setIsLoading(false);

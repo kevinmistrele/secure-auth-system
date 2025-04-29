@@ -57,7 +57,7 @@ export function ProfilePage() {
         setIsEditing(false)
 
         try {
-            const response = await updateUser(user.id, formData.fullName)
+            const response = await await updateUser(user.id, formData.fullName, user.role)
             setUser(response.user)
             localStorage.setItem("fullName", response.user.fullName)
             toast.success("Profile updated successfully")
