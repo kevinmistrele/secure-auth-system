@@ -14,14 +14,12 @@ import {
 } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
-import { AlertCircle } from "lucide-react"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useAuth } from "@/providers/auth-provider.tsx"
 import { toast } from "sonner"
 import useApiService from "@/services/apiService.ts";
-import {userStore} from "@/stores/user-store.ts";
-import {useNavigate} from "react-router-dom";
-import {ConfirmationModal} from "@/components/modal/confirmation-modal.tsx";
+import { userStore } from "@/stores/user-store.ts";
+import { useNavigate } from "react-router-dom";
+import { ConfirmationModal } from "@/components/modal/confirmation-modal.tsx";
 
 export interface User {
     id: string
@@ -35,23 +33,21 @@ interface UsersComponentProps {
 }
 
 export function UsersComponent({ users = [] }: UsersComponentProps) {
-    const { getUsers, deleteUser } = useApiService()
+    const { getUsers, deleteUser, updateUser } = useApiService()
     const [sampleUsers, setSampleUsers] = useState<User[]>(users)
     const [currentPage, setCurrentPage] = useState(1)
-    const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
-    const [userIdToDelete, setUserIdToDelete] = useState<string | null>(null);
-    const { updateUser } = useApiService();
+    const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false)
+    const [userIdToDelete, setUserIdToDelete] = useState<string | null>(null)
     const itemsPerPage = 12
     const totalPages = Math.ceil(sampleUsers.length / itemsPerPage)
     const currentUsers = sampleUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [selectedUser, setSelectedUser] = useState<User | null>(null)
     const [newRole, setNewRole] = useState<"user" | "admin">("user")
-    const [showAdminError, setShowAdminError] = useState(false)
     const [newName, setNewName] = useState("")
     const { user: loggedUser } = useAuth()
-    const navigate = useNavigate();
+    const navigate = useNavigate()
+
     useEffect(() => {
         const loadUsers = async () => {
             try {
@@ -64,20 +60,7 @@ export function UsersComponent({ users = [] }: UsersComponentProps) {
         loadUsers()
     }, [])
 
-    const handleOpenChangeRoleModal = (user: User) => {
-        if (user.role === "admin") {
-            setShowAdminError(true)
-            setTimeout(() => setShowAdminError(false), 3000)
-            return
-        }
-
-        setSelectedUser(user)
-        setNewRole(user.role)
-        setIsModalOpen(true)
-    }
-
     const handleOpenEditModal = (user: User) => {
-        console.log('valores de user', user)
         setSelectedUser(user)
         setNewName(user.name)
         setNewRole(user.role)
@@ -85,71 +68,62 @@ export function UsersComponent({ users = [] }: UsersComponentProps) {
     }
 
     const logout = () => {
-        userStore.clear();
-        localStorage.removeItem("token");
-        localStorage.removeItem("role");
-        localStorage.removeItem("id");
-        navigate("/login");
-    };
+        userStore.clear()
+        localStorage.removeItem("token")
+        localStorage.removeItem("role")
+        localStorage.removeItem("id")
+        navigate("/login")
+    }
 
     const handleConfirmDelete = async () => {
         try {
-            await deleteUser(userIdToDelete!);
-            toast.success("User deleted successfully");
-
-            setSampleUsers((prevUsers) => prevUsers.filter((user) => user.id !== userIdToDelete));
+            await deleteUser(userIdToDelete!)
+            toast.success("User deleted successfully")
+            setSampleUsers((prevUsers) => prevUsers.filter((user) => user.id !== userIdToDelete))
 
             if (userIdToDelete === loggedUser?.id) {
-                logout();
+                logout()
             }
-            setIsConfirmDeleteOpen(false);
+
+            setIsConfirmDeleteOpen(false)
         } catch (error) {
-            toast.error("Error deleting user");
-            console.error(error);
+            toast.error("Error deleting user")
+            console.error(error)
         }
     }
 
-
     const handleDelete = (userId: string) => {
-        setUserIdToDelete(userId);
-        setIsConfirmDeleteOpen(true);
-    };
+        setUserIdToDelete(userId)
+        setIsConfirmDeleteOpen(true)
+    }
 
     const handleUpdateUser = async () => {
-        if (!selectedUser) return;
+        if (!selectedUser) return
 
         try {
             const updatedUsers = sampleUsers.map((user) =>
                 user.id === selectedUser.id
                     ? { ...user, name: newName, role: newRole }
                     : user
-            );
+            )
 
-            setSampleUsers(updatedUsers);
+            setSampleUsers(updatedUsers)
 
-             await updateUser(selectedUser.id, newName, newRole);
+            await updateUser(selectedUser.id, newName, newRole)
 
-            toast.success("User has been updated successfully!");
-            setIsModalOpen(false);
-            setSelectedUser(null);
-        } catch (error) {
-            toast.error("Error updating user!");
+            toast.success("User has been updated successfully!")
+            setIsModalOpen(false)
+            setSelectedUser(null)
+        } catch {
+            toast.error("Error updating user!")
         }
-    };
-
+    }
 
     return (
         <>
             <div className="text-center mb-8">
                 <h1 className="text-3xl font-bold">User Management</h1>
             </div>
-
-            {showAdminError && (
-                <Alert variant="destructive" className="mb-4">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>Admin roles cannot be changed</AlertDescription>
-                </Alert>
-            )}
 
             <div className="hidden md:block">
                 <Table>
@@ -193,7 +167,6 @@ export function UsersComponent({ users = [] }: UsersComponentProps) {
                 </Table>
             </div>
 
-            {/* A versão mobile */}
             <div className="md:hidden space-y-4">
                 {currentUsers.map((user) => (
                     <Card key={user.id}>
@@ -216,14 +189,15 @@ export function UsersComponent({ users = [] }: UsersComponentProps) {
                                         size="sm"
                                         variant="outline"
                                         className="cursor-pointer"
-                                        onClick={() => handleOpenChangeRoleModal(user)}
+                                        onClick={() => handleOpenEditModal(user)} // 🔄 corrigido
                                     >
-                                        Change Role
+                                        Edit User
                                     </Button>
                                     <Button
                                         size="sm"
                                         variant="outline"
                                         className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white cursor-pointer"
+                                        onClick={() => handleDelete(user.id)} // ✅ adicionado
                                     >
                                         Delete User
                                     </Button>
@@ -309,6 +283,7 @@ export function UsersComponent({ users = [] }: UsersComponentProps) {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
             <ConfirmationModal
                 isOpen={isConfirmDeleteOpen}
                 onClose={() => setIsConfirmDeleteOpen(false)}
