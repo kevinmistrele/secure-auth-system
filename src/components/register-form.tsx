@@ -15,13 +15,16 @@ export function RegisterForm({ className, ...props }: React.ComponentProps<"form
     const [password, setPassword] = useState("")
     const [confirmPassword, setConfirmPassword] = useState("")
     const [error, setError] = useState("")
+    const [isLoading, setIsLoading] = useState(false)
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         setError("")
+        setIsLoading(true)
 
         if (password !== confirmPassword) {
             setError("Passwords do not match")
+            setIsLoading(false)
             return
         }
 
@@ -30,6 +33,8 @@ export function RegisterForm({ className, ...props }: React.ComponentProps<"form
             navigate("/login")
         } catch {
             setError("Error registering user. Try a different email.")
+        } finally {
+            setIsLoading(false)
         }
     }
 
@@ -47,26 +52,61 @@ export function RegisterForm({ className, ...props }: React.ComponentProps<"form
             <div className="grid gap-6">
                 <div className="grid gap-3">
                     <Label htmlFor="name">Full Name</Label>
-                    <Input id="name" type="text" value={name} onChange={(e) => setName(e.target.value)} required />
+                    <Input
+                        id="name"
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        required
+                        disabled={isLoading}
+                    />
                 </div>
 
                 <div className="grid gap-3">
                     <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                    <Input
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        disabled={isLoading}
+                    />
                 </div>
 
                 <div className="grid gap-3">
                     <Label htmlFor="password">Password</Label>
-                    <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                    <Input
+                        id="password"
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        disabled={isLoading}
+                    />
                 </div>
 
                 <div className="grid gap-3">
                     <Label htmlFor="confirm-password">Confirm Password</Label>
-                    <Input id="confirm-password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
+                    <Input
+                        id="confirm-password"
+                        type="password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        required
+                        disabled={isLoading}
+                    />
                 </div>
 
-                <Button type="submit" className="w-full cursor-pointer">
-                    Sign Up
+                <Button type="submit" className="w-full cursor-pointer" disabled={isLoading}>
+                    {isLoading ? (
+                        <div className="flex items-center justify-center gap-2">
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                            Creating...
+                        </div>
+                    ) : (
+                        "Sign Up"
+                    )}
                 </Button>
             </div>
 

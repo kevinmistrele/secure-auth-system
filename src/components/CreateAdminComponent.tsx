@@ -87,7 +87,7 @@ export function CreateAdminComponent() {
                                     <FormItem>
                                         <FormLabel>Full Name</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Insert your full name..." {...field} />
+                                            <Input placeholder="Insert your full name..." {...field} disabled={isSubmitting} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -101,7 +101,7 @@ export function CreateAdminComponent() {
                                     <FormItem>
                                         <FormLabel>Email</FormLabel>
                                         <FormControl>
-                                            <Input type="email" placeholder="admin@example.com" {...field} />
+                                            <Input type="email" placeholder="admin@example.com" {...field} disabled={isSubmitting} />
                                         </FormControl>
                                         <FormDescription>This email will be used to login.</FormDescription>
                                         <FormMessage />
@@ -116,7 +116,7 @@ export function CreateAdminComponent() {
                                     <FormItem>
                                         <FormLabel>Senha</FormLabel>
                                         <FormControl>
-                                            <Input type="password" placeholder="********" {...field} />
+                                            <Input type="password" placeholder="********" {...field} disabled={isSubmitting} />
                                         </FormControl>
                                         <FormDescription>Password must be at least 8 characters.</FormDescription>
                                         <FormMessage />
@@ -131,14 +131,19 @@ export function CreateAdminComponent() {
                                     <FormItem>
                                         <FormLabel>Confirm Password</FormLabel>
                                         <FormControl>
-                                            <Input type="password" placeholder="********" {...field} />
+                                            <Input type="password" placeholder="********" {...field} disabled={isSubmitting} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
 
-                            <Button type="submit" className="w-full mt-6 cursor-pointer" disabled={isSubmitting}>
+                            <Button
+                                type="submit"
+                                className="w-full cursor-pointer"
+                                disabled={isSubmitting}
+                                aria-busy={isSubmitting}
+                            >
                                 {isSubmitting ? (
                                     <>
                                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
