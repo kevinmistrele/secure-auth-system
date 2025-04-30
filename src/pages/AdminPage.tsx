@@ -123,7 +123,7 @@ export function AdminPage() {
                             </Button>
 
 
-                            <Button variant="ghost" size="icon" className="text-red-500">
+                            <Button variant="ghost" size="icon" className="text-red-500" onClick={logout}>
                                 <LogOut size={20}/>
                             </Button>
                         </div>
