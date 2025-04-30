@@ -2,16 +2,17 @@ import { Label } from "@radix-ui/react-label";
 import { Input } from "@/components/ui/input.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card.tsx";
-import { Eye } from "lucide-react";
+import { Eye, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import useApiService from "@/services/apiService.ts";
-import {useNavigate} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export function ResetPasswordPage() {
     const [showPassword, setShowPassword] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const { resetPassword } = useApiService();
-    const navigate = useNavigate()
+    const navigate = useNavigate();
 
     const token = new URLSearchParams(window.location.search).get("token") || "";
 
@@ -26,6 +27,8 @@ export function ResetPasswordPage() {
             return;
         }
 
+        setIsLoading(true);
+
         try {
             const success = await resetPassword(token, password);
 
@@ -37,6 +40,8 @@ export function ResetPasswordPage() {
             }
         } catch {
             toast.error("An unexpected error occurred.");
+        } finally {
+            setIsLoading(false);
         }
     }
 
@@ -58,6 +63,7 @@ export function ResetPasswordPage() {
                                     type={showPassword ? "text" : "password"}
                                     className="pr-10"
                                     required
+                                    disabled={isLoading}
                                 />
                                 <Button
                                     type="button"
@@ -78,10 +84,18 @@ export function ResetPasswordPage() {
                                 name="confirmPassword"
                                 type="password"
                                 required
+                                disabled={isLoading}
                             />
                         </div>
-                        <Button type="submit" className="w-full cursor-pointer">
-                            Reset password
+                        <Button type="submit" className="w-full cursor-pointer" disabled={isLoading}>
+                            {isLoading ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Processing...
+                                </>
+                            ) : (
+                                "Reset password"
+                            )}
                         </Button>
                     </form>
                 </CardContent>

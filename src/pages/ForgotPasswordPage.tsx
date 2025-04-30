@@ -4,14 +4,19 @@ import { Button } from "@/components/ui/button.tsx";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import useApiService from "@/services/apiService.ts";
+import { useState } from "react";
+import { Loader2 } from "lucide-react";
 
 export function ForgotPasswordPage() {
     const { requestPasswordReset } = useApiService();
+    const [isLoading, setIsLoading] = useState(false);
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
         const email = formData.get("email") as string;
+
+        setIsLoading(true);
 
         try {
             const success = await requestPasswordReset(email);
@@ -23,9 +28,10 @@ export function ForgotPasswordPage() {
             }
         } catch {
             toast.error("Ocorreu um erro ao tentar redefinir a senha.");
+        } finally {
+            setIsLoading(false);
         }
     }
-
 
     return (
         <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 py-12 px-4 dark:bg-gray-950">
@@ -51,10 +57,18 @@ export function ForgotPasswordPage() {
                             autoComplete="email"
                             required
                             placeholder="fabiano@example.com"
+                            disabled={isLoading}
                         />
                     </div>
-                    <Button type="submit" className="w-full cursor-pointer">
-                        Reset password
+                    <Button type="submit" className="w-full cursor-pointer" disabled={isLoading}>
+                        {isLoading ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Sending...
+                            </>
+                        ) : (
+                            "Reset password"
+                        )}
                     </Button>
                 </form>
                 <div className="flex justify-center">
