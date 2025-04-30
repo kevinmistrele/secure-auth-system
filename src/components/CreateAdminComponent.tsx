@@ -12,7 +12,6 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import useApiService from "@/services/apiService.ts";
-import {useNavigate} from "react-router-dom";
 
 const formSchema = z
     .object({
@@ -31,7 +30,6 @@ type FormValues = z.infer<typeof formSchema>
 export function CreateAdminComponent() {
     const [isSubmitting, setIsSubmitting] = useState(false)
     const { registerAdmin } = useApiService()
-    const navigate = useNavigate()
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -59,7 +57,6 @@ export function CreateAdminComponent() {
 
             form.reset()
 
-            navigate("/login")
         } catch (error) {
             toast.error("Failed to create admin", {
                 description: "An error occurred. Please try again.",
